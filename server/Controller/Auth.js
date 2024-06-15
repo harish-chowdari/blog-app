@@ -1,6 +1,6 @@
 const Db = require("../Db")
 const bcrypt = require("bcryptjs")
-
+const jwt = require("jsonwebtoken")
 
 
 const Register = (req, res) => {
@@ -60,9 +60,14 @@ const Login = (req, res) => {
     if (!isPasswordCorrect)
       return res.status(400).json("Wrong username or password!");
 
-    
+    const token = jwt.sign({id: data[0].id}, "jwtKey")
 
-    res.status(200).json("login success");
+    const {password, ...other} = data[0]
+
+    res.cookie("accessToken", token, {
+      httpOnly: true
+    }).json(other)
+
   });
 
 
@@ -72,7 +77,14 @@ const Login = (req, res) => {
 
 
 
-const Logout = (req, res) => {};
+const Logout = (req, res) => {
+
+  res.clearCookie("accessToken", {
+    sameSite: "none",
+    secure: true
+  }).json("User has been logged out.")
+
+};
 
 module.exports = {
   Register,
