@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import "react-quill/dist/quill.snow.css";
+import axios from "axios";
 
 import ReactQuill from "react-quill";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import moment from "moment";
 
 const Write = () => {
   const state = useLocation().state;
@@ -11,10 +13,56 @@ const Write = () => {
   const [file, setFile] = useState(null);
   const [cat, setCat] = useState(state?.cat || "");
 
+  const navigate = useNavigate()
+
+
+  const Upload = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await axios.post("/upload", formData);
+      return res.data.filename;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    const imgUrl = await Upload();
+
+    try {
+      state
+        ? await axios.put(`/posts/${state.id}`, {
+            title,
+            desc: value,
+            cat,
+            img: file ? imgUrl : "",
+          })
+        : await axios.post(`/posts/`, {
+            title,
+            desc: value,
+            cat,
+            img: file ? imgUrl : "",
+            date: moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
+          });
+
+          navigate("/")
+
+        } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="add">
       <div className="content">
-        <input type="text" placeholder="title" />
+        <input
+          type="text"
+          placeholder="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
         <div className="editorContainer">
           <ReactQuill
             className="editor"
@@ -35,14 +83,20 @@ const Write = () => {
             <b>Visibility: </b> Public
           </span>
 
-          <input style={{ display: "none" }} type="file" id="file" name="" />
+          <input
+            style={{ display: "none" }}
+            type="file"
+            id="file"
+            name=""
+            onChange={(e) => setFile(e.target.files[0])}
+          />
           <label className="file" htmlFor="file">
             Upload Image
           </label>
 
           <div className="buttons">
             <button>Save as a draft</button>
-            <button>Publish</button>
+            <button onClick={handleClick}>Publish</button>
           </div>
         </div>
 
@@ -56,6 +110,7 @@ const Write = () => {
               name="cat"
               value="art"
               id="art"
+              onChange={(e) => setCat(e.target.value)}
             />
             <label htmlFor="art">Art</label>
           </div>

@@ -42,7 +42,7 @@ const Single = () => {
     } 
     
     catch (err) {
-      console.log(err);
+      console.log(err); 
     }
   };
 
@@ -67,7 +67,7 @@ const Single = () => {
           </div>
 
           {currentUser.username === post.username && <div className="edit">
-            <Link to={`/write?edit=2`}>
+            <Link to={`/write?edit=2`} state={post}>
               <img src={edit} alt="edit" />
             </Link>
             <img onClick={handleDelete} src={dlt} alt="delete" />
@@ -79,7 +79,7 @@ const Single = () => {
 
       </div>
 
-      <Menu />
+      <Menu cat={post.cat} />
     </div>
   );
 };
